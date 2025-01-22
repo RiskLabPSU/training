@@ -1,0 +1,77 @@
+---
+title: "The IUCN RedList API"
+format:
+  html:
+    toc: true
+    number-sections: true
+    code-fold: true
+---
+
+# Setup
+
+We download the `iucnredlist` package from github using the package pacman. 
+
+```{r}
+#| label: setup
+#| echo: false
+#| quiet: true
+#| results: false
+#| message: false
+
+pkgs <- c("DT",
+          "here",
+          "keyring",
+          "tidyverse")
+
+# install pacman if required
+require("pacman")
+pacman::p_load(pkgs, character.only = TRUE)
+
+# obtain the redlist API package
+pacman::p_install_gh("IUCN-UK/iucnredlist")
+pacman::p_load("iucnredlist", character.only = TRUE)
+
+```
+
+Type `key_set("iucn-api-code")` into the console and paste your api key into the pop-up window. This will allow you to access data from the api without making the code available in your scripts etc.
+
+# Obtain assessments
+
+Using the API token we can obtain the RedLists of assessments by species.
+
+## *Panthera leo*
+
+The below example is for *Panthera leo* based on an `assessment_id`.
+
+```{r}
+#| label: test-api
+
+# Initialize the API with your API key
+api <- init_api(key_get("iucn-api-code"))
+
+# Fetch assessment data for assessment_id = 266696959 (Panthera leo)
+# Returns a list containing all assessment data
+assessment_raw <- assessment_data(api, 266696959)
+
+# Parse the 'raw' assessment data to tidy tibbles
+assessment <- parse_assessment_data(assessment_raw)
+
+# View e.g. threats or habitats
+# The result is a tidy 'tibble()` of data
+datatable(assessment$threats)
+datatable(assessment$habitats)
+```
+
+## *Mastomys natalensis*
+
+The API queries can also be run from a binomial name (i.e., *Mastomys natalensis*).
+
+```{r}
+# label: get-assessments-by-species
+
+# Get all historic and latest assessments for Mastomys natalensis (not case-sensitive)
+mnat <- assessments_by_name(api, genus = "mastomys", species = "natalensis")
+
+datatable(mnat)
+```
+
